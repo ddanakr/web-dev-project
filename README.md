@@ -31,7 +31,7 @@ A full-stack collaborative platform for academic material sharing and discovery.
 ├── frontend/           # Angular Application
 ├── .gitignore          # Environment & dependency filters
 └── README.md           # Project documentation
-
+```
 
 ---  
 
