@@ -1,1 +1,21 @@
-<p>profile works!</p>
+<h1>Profile</h1>
+
+<h2>Uploads</h2>
+
+@for (item of uploads; track item.id) {
+  <div>{{ item.title }}</div>
+}
+
+@if (uploads.length === 0) {
+  <p>No uploads yet.</p>
+}
+
+<h2>Favorites</h2>
+
+@for (item of favorites; track item.id) {
+  <div>{{ item.title }}</div>
+}
+
+@if (favorites.length === 0) {
+  <p>No favorites yet.</p>
+}

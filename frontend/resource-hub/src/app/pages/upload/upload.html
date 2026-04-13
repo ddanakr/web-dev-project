@@ -1,0 +1,17 @@
+<h1>Upload</h1>
+
+<input [(ngModel)]="title" placeholder="Title">
+<input [(ngModel)]="url" placeholder="URL">
+<input type="file" (change)="onFileSelected($event)">
+
+@if (fileName) {
+  <p>Selected file: {{ fileName }}</p>
+}
+
+<select [(ngModel)]="subjectId">
+  @for (s of subjects; track s.id) {
+    <option [value]="s.id">{{ s.name }}</option>
+  }
+</select>
+
+<button (click)="add()">Upload</button>

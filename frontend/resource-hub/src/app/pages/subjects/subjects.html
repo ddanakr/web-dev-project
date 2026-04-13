@@ -1,5 +1,18 @@
 <h1>Subjects</h1>
 
 @for (s of subjects; track s.id) {
-  <div>{{ s.name }}</div>
+  <div style="margin-bottom: 24px;">
+    <h2>
+      <a [routerLink]="['/materials', s.id]">{{ s.name }}</a>
+    </h2>
+
+    <p>Total materials: {{ s.totalMaterials }}</p>
+
+    @for (m of s.previewMaterials; track m.id) {
+      <div style="margin-left: 16px; margin-bottom: 8px;">
+        <div>{{ m.title }}</div>
+        <small>Rating: {{ m.rating }} | Downloads: {{ m.downloads }}</small>
+      </div>
+    }
+  </div>
 }
