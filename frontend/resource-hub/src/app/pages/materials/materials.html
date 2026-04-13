@@ -1,0 +1,44 @@
+<h1>Materials</h1>
+
+<h2>Add Material</h2>
+
+<input 
+  type="text" 
+  placeholder="Title" 
+  [(ngModel)]="title" 
+  name="title"
+>
+
+<br><br>
+
+<input 
+  type="text" 
+  placeholder="Description" 
+  [(ngModel)]="description" 
+  name="description"
+>
+
+<br><br>
+
+<button (click)="addMaterial()">Add</button>
+
+<hr>
+
+@for (m of materials; track m.id) {
+  <div style="border:1px solid gray; padding:10px; margin:10px;">
+    
+    <b>{{ m.title }}</b> (Rating: {{ m.rating }})
+
+    <br><br>
+
+    <button (click)="download(m)">Download</button>
+    <button (click)="like(m)">Like</button>
+    <button (click)="toggleDetails(m)">Details</button>
+    <button (click)="delete(m)">Delete</button>
+
+    @if (m.show) {
+      <p>Some description about {{ m.title }}</p>
+    }
+
+  </div>
+}
