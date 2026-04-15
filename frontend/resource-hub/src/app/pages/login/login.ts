@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-login',
@@ -9,11 +10,20 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './login.css',
 })
 export class LoginComponent {
+  username = '';
+  password = '';
+  errorMessage = '';
 
-  username: string = '';
-  password: string = '';
+  constructor(private router: Router) {}
 
-  login() {
-    alert('Login: ' + this.username);
+  login(): void {
+    if (!this.username.trim() || !this.password.trim()) {
+      this.errorMessage = 'Enter username and password';
+      return;
+    }
+
+    localStorage.setItem('access_token', 'mock-jwt-token');
+    this.errorMessage = '';
+    this.router.navigate(['/subjects']);
   }
 }

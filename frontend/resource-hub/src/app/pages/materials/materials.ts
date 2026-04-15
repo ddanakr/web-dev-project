@@ -19,12 +19,18 @@ export class MaterialsComponent {
     private route: ActivatedRoute
   ) {
     const subjectId = Number(this.route.snapshot.paramMap.get('id'));
-    this.subject = this.api.getSubjects().find(item => item.id === subjectId);
+    this.subject = this.api.getSubjectById(subjectId);
     this.materials = this.api.getMaterialsBySubject(subjectId);
   }
 
   toggleFavorite(materialId: number): void {
     this.api.toggleFavorite(materialId);
     this.materials = [...this.materials];
+  }
+
+  getStars(rating: number): string {
+    const fullStars = Math.floor(rating);
+    const halfStar = rating % 1 >= 0.5 ? '?' : '';
+    return `${'?'.repeat(fullStars)}${halfStar}`;
   }
 }

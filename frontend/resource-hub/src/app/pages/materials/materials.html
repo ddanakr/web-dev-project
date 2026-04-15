@@ -1,16 +1,38 @@
-<h1>{{ subject?.name ?? 'Materials' }}</h1>
-
-@for (m of materials; track m.id) {
-  <div style="border: 1px solid gray; padding: 10px; margin: 10px 0;">
-    <b>{{ m.title }}</b>
-    <div>Rating: {{ m.rating }}</div>
-    <div>Downloads: {{ m.downloads }}</div>
-    <button type="button" (click)="toggleFavorite(m.id)">
-      {{ m.isFavorite ? 'Liked' : 'Like' }}
-    </button>
+<main class="container">
+  <div class="page-header">
+    <h1>{{ subject?.name ?? 'Materials' }}</h1>
+    <p>{{ subject?.description }}</p>
   </div>
-}
 
-@if (materials.length === 0) {
-  <p>No materials for this subject yet.</p>
-}
+  <div class="materials-list">
+    @for (m of materials; track m.id) {
+      <div class="material-card">
+        <div class="material-info">
+          <div class="material-title">{{ m.title }}</div>
+          <div class="material-rating">
+            <span>{{ getStars(m.rating) }}</span>
+            <span>{{ m.rating }} ({{ m.downloads }} downloads)</span>
+          </div>
+        </div>
+
+        <div class="material-actions">
+          <button
+            class="btn-icon favorite"
+            [class.active]="m.isFavorite"
+            type="button"
+            (click)="toggleFavorite(m.id)"
+          >
+            <i class="fas fa-heart"></i>
+          </button>
+          <a class="btn-icon download" [href]="m.url || '#'" target="_blank" rel="noreferrer">
+            <i class="fas fa-download"></i>
+          </a>
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (materials.length === 0) {
+    <p style="color: var(--text-secondary);">No materials for this subject yet</p>
+  }
+</main>

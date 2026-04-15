@@ -1,18 +1,57 @@
-<h1>Subjects</h1>
+<main class="container">
+  <div class="page-header">
+    <h1><i class="fas fa-book"></i> Educational Resource Catalog</h1>
+    <p>Explore Web Development, OOP, IT Networks, and Ethical Design</p>
+  </div>
 
-@for (s of subjects; track s.id) {
-  <div style="margin-bottom: 24px;">
-    <h2>
-      <a [routerLink]="['/materials', s.id]">{{ s.name }}</a>
-    </h2>
+  <div class="search-bar">
+    <input [(ngModel)]="searchQuery" type="text" placeholder="Search subjects..." autocomplete="off">
+  </div>
 
-    <p>Total materials: {{ s.totalMaterials }}</p>
+  <div class="subjects-grid">
+    @for (subject of filteredSubjects; track subject.id) {
+      <div class="subject-card" [attr.data-subject-id]="subject.id">
+        <div class="subject-header">
+          <a class="subject-title-link" [routerLink]="['/materials', subject.id]">
+            <h3>{{ subject.name }}</h3>
+          </a>
+          <button class="btn-icon" type="button" (click)="toggleDescription(subject.id)">
+            <i class="fas" [class.fa-chevron-up]="subject.expanded" [class.fa-chevron-down]="!subject.expanded"></i>
+          </button>
+        </div>
 
-    @for (m of s.previewMaterials; track m.id) {
-      <div style="margin-left: 16px; margin-bottom: 8px;">
-        <div>{{ m.title }}</div>
-        <small>Rating: {{ m.rating }} | Downloads: {{ m.downloads }}</small>
+        <div class="subject-description" [class.hidden]="!subject.expanded">
+          {{ subject.description }}
+        </div>
+
+        <div class="materials-list">
+          @for (material of subject.previewMaterials; track material.id) {
+            <div class="material-card" [attr.data-material-id]="material.id">
+              <div class="material-info">
+                <div class="material-title">{{ material.title }}</div>
+                <div class="material-rating">
+                  <span>{{ getStars(material.rating) }}</span>
+                  <span>{{ material.rating }} ({{ material.downloads }} downloads)</span>
+                </div>
+              </div>
+
+              <div class="material-actions">
+                <button
+                  class="btn-icon favorite"
+                  [class.active]="material.isFavorite"
+                  type="button"
+                  (click)="toggleFavorite(material.id)"
+                >
+                  <i class="fas fa-heart"></i>
+                </button>
+                <a class="btn-icon download" [href]="material.url || '#'" target="_blank" rel="noreferrer">
+                  <i class="fas fa-download"></i>
+                </a>
+              </div>
+            </div>
+          }
+        </div>
       </div>
     }
   </div>
-}
+</main>

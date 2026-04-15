@@ -1,11 +1,43 @@
-<nav>
-  <a routerLink="/">Home</a> |
-  <a routerLink="/subjects">Subjects</a> |
-  <a routerLink="/upload">Upload</a> |
-  <a routerLink="/profile">Profile</a> |
-  <a routerLink="/login">Login</a>
+<nav class="navbar">
+  <div class="container">
+    <a routerLink="/subjects" class="logo">
+      <i class="fas fa-graduation-cap"></i>
+      Resource Hub
+    </a>
+
+    <div class="nav-links">
+      @if (!isLoginPage) {
+        <a routerLink="/subjects" routerLinkActive="active-link">
+          <i class="fas fa-home"></i> Subjects
+        </a>
+        <a routerLink="/upload" routerLinkActive="active-link">
+          <i class="fas fa-upload"></i> Upload
+        </a>
+        <a routerLink="/profile" routerLinkActive="active-link">
+          <i class="fas fa-user"></i> Profile
+        </a>
+      }
+
+      <button id="theme-toggle-btn" class="theme-toggle" type="button" (click)="toggleTheme()">
+        <i class="fas" [class.fa-moon]="!isDarkMode" [class.fa-sun]="isDarkMode"></i>
+        {{ isDarkMode ? 'Light Mode' : 'Dark Mode' }}
+      </button>
+
+      @if (!isLoginPage) {
+        <a routerLink="/login" id="logout-btn" (click)="logout($event)">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+      }
+    </div>
+  </div>
 </nav>
 
-<hr>
-
 <router-outlet></router-outlet>
+
+@if (!isLoginPage) {
+  <footer class="footer">
+    <div class="container">
+      <p>&copy; 2026 Resource Hub. Share your knowledge!</p>
+    </div>
+  </footer>
+}
