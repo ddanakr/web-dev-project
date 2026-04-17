@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { HomeComponent } from './pages/home/home';
 import { LoginComponent } from './pages/login/login';
 import { SubjectsComponent } from './pages/subjects/subjects';
 import { MaterialsComponent } from './pages/materials/materials';
@@ -6,7 +7,7 @@ import { UploadComponent } from './pages/upload/upload';
 import { ProfileComponent } from './pages/profile/profile';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'subjects', pathMatch: 'full' },
+  { path: '', component: HomeComponent },
   { path: 'login', component: LoginComponent },
   { path: 'subjects', component: SubjectsComponent },
   { path: 'materials/:id', component: MaterialsComponent },

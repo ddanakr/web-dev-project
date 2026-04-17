@@ -1,12 +1,15 @@
 <nav class="navbar">
   <div class="container">
-    <a routerLink="/subjects" class="logo">
+    <a routerLink="/" class="logo">
       <i class="fas fa-graduation-cap"></i>
       Resource Hub
     </a>
 
     <div class="nav-links">
       @if (!isLoginPage) {
+        <a routerLink="/" routerLinkActive="active-link" [routerLinkActiveOptions]="{ exact: true }">
+          <i class="fas fa-star"></i> Home
+        </a>
         <a routerLink="/subjects" routerLinkActive="active-link">
           <i class="fas fa-home"></i> Subjects
         </a>

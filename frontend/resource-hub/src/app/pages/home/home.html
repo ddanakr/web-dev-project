@@ -1,3 +1,70 @@
-<h1>Home</h1>
-<a routerLink="/login">Login</a>
-<p>Resource Hub: вход / описание.</p>
+<main class="home-page">
+  <section class="hero container">
+    <div class="hero-copy">
+      <span class="hero-badge">Educational Resource Platform</span>
+      <h1>Find, save, and share study materials in one clean hub.</h1>
+      <p>
+        Resource Hub helps students organize subject-based materials, upload useful files,
+        and keep favorite resources close for later.
+      </p>
+
+      <div class="hero-actions">
+        <a routerLink="/subjects" class="btn btn-primary">
+          <i class="fas fa-compass"></i> Explore Subjects
+        </a>
+        <a routerLink="/login" class="btn hero-secondary">
+          <i class="fas fa-right-to-bracket"></i> Login
+        </a>
+      </div>
+
+      <div class="hero-stats">
+        @for (stat of stats; track stat.label) {
+          <div class="hero-stat">
+            <strong>{{ stat.value }}</strong>
+            <span>{{ stat.label }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="hero-panel">
+      <div class="panel-card panel-card-primary">
+        <p class="panel-overline">Quick Start</p>
+        <h2>What can you do here?</h2>
+        <ul>
+          <li>Open subjects and preview materials</li>
+          <li>Upload your own study resources</li>
+          <li>Like useful materials and find them in profile</li>
+        </ul>
+      </div>
+
+      <div class="panel-card panel-card-secondary">
+        <p class="panel-overline">Popular Flow</p>
+        <div class="flow-step">
+          <span>1</span>
+          <p>Choose a subject</p>
+        </div>
+        <div class="flow-step">
+          <span>2</span>
+          <p>Open the full materials list</p>
+        </div>
+        <div class="flow-step">
+          <span>3</span>
+          <p>Save favorites or upload your own file</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="home-features container">
+    @for (item of highlights; track item.title) {
+      <article class="feature-card">
+        <div class="feature-icon">
+          <i class="fas" [class]="item.icon"></i>
+        </div>
+        <h3>{{ item.title }}</h3>
+        <p>{{ item.text }}</p>
+      </article>
+    }
+  </section>
+</main>

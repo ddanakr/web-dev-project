@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { ApiService } from '../../services/api';
 
 @Component({
   selector: 'app-login',
@@ -14,7 +15,10 @@ export class LoginComponent {
   password = '';
   errorMessage = '';
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private api: ApiService
+  ) {}
 
   login(): void {
     if (!this.username.trim() || !this.password.trim()) {
@@ -22,8 +26,16 @@ export class LoginComponent {
       return;
     }
 
-    localStorage.setItem('access_token', 'mock-jwt-token');
-    this.errorMessage = '';
-    this.router.navigate(['/subjects']);
+    this.api.login(this.username.trim(), this.password).subscribe({
+      next: (response) => {
+        localStorage.setItem('token', response.token);
+        localStorage.setItem('current_username', this.username.trim());
+        this.errorMessage = '';
+        this.router.navigate(['/']);
+      },
+      error: () => {
+        this.errorMessage = 'Login failed. Check username and password.';
+      }
+    });
   }
 }

@@ -10,21 +10,23 @@ import { ApiService } from '../../services/api';
   styleUrl: './profile.css',
 })
 export class ProfileComponent {
-  readonly username = 'alex_developer';
-  readonly email = 'alex@example.com';
+  readonly username = localStorage.getItem('current_username') ?? 'Guest user';
+  readonly email = 'Email is not available from the current backend yet.';
+  favorites: Material[] = [];
 
-  constructor(private api: ApiService) {}
-
-  get uploads(): Material[] {
-    return this.api.getMaterials();
-  }
-
-  get favorites(): Material[] {
-    return this.api.getFavoriteMaterials();
+  constructor(private api: ApiService) {
+    this.api.getFavoriteMaterials().subscribe({
+      next: (favorites) => {
+        this.favorites = favorites;
+      },
+      error: () => {
+        this.favorites = [];
+      }
+    });
   }
 
   get uploadCount(): number {
-    return this.uploads.length;
+    return this.getUploadedMaterialIds().length;
   }
 
   get favoriteCount(): number {
@@ -35,5 +37,19 @@ export class ProfileComponent {
     const fullStars = Math.floor(rating);
     const halfStar = rating % 1 >= 0.5 ? '?' : '';
     return `${'?'.repeat(fullStars)}${halfStar}`;
+  }
+
+  private getUploadedMaterialIds(): number[] {
+    const storedIds = localStorage.getItem('uploaded_material_ids');
+
+    if (!storedIds) {
+      return [];
+    }
+
+    try {
+      return JSON.parse(storedIds) as number[];
+    } catch {
+      return [];
+    }
   }
 }

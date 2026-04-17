@@ -4,6 +4,10 @@
     <p>{{ subject?.description }}</p>
   </div>
 
+  @if (errorMessage) {
+    <p style="color: #b42318; margin-bottom: 16px;">{{ errorMessage }}</p>
+  }
+
   <div class="materials-list">
     @for (m of materials; track m.id) {
       <div class="material-card">

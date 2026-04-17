@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { ApiService } from '../../services/api';
 import { Material } from '../../models/material';
 import { Subject } from '../../models/subject';
@@ -23,6 +24,7 @@ interface SubjectPreview {
 export class SubjectsComponent {
   subjects: SubjectPreview[] = [];
   searchQuery = '';
+  errorMessage = '';
 
   constructor(private api: ApiService) {
     this.refreshSubjects();
@@ -48,8 +50,12 @@ export class SubjectsComponent {
   }
 
   toggleFavorite(materialId: number): void {
-    this.api.toggleFavorite(materialId);
-    this.refreshSubjects();
+    this.api.toggleFavorite(materialId).subscribe({
+      next: () => this.refreshSubjects(),
+      error: () => {
+        this.errorMessage = 'Could not update favorites. Please log in first.';
+      }
+    });
   }
 
   getStars(rating: number): string {
@@ -60,13 +66,25 @@ export class SubjectsComponent {
 
   private refreshSubjects(): void {
     const expansionState = new Map(this.subjects.map((subject) => [subject.id, subject.expanded]));
+    this.errorMessage = '';
 
-    this.subjects = this.api.getSubjects().map((subject: Subject) => ({
-      id: subject.id,
-      name: subject.name,
-      description: subject.description,
-      expanded: expansionState.get(subject.id) ?? false,
-      previewMaterials: this.api.getMaterialsBySubject(subject.id).slice(0, 3)
-    }));
+    forkJoin({
+      subjects: this.api.getSubjects(),
+      materials: this.api.getMaterials()
+    }).subscribe({
+      next: ({ subjects, materials }) => {
+        this.subjects = subjects.map((subject: Subject) => ({
+          id: subject.id,
+          name: subject.name,
+          description: subject.description,
+          expanded: expansionState.get(subject.id) ?? false,
+          previewMaterials: materials.filter((material) => material.subjectId === subject.id).slice(0, 3)
+        }));
+      },
+      error: () => {
+        this.subjects = [];
+        this.errorMessage = 'Could not load subjects from the backend.';
+      }
+    });
   }
 }

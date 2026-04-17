@@ -18,19 +18,29 @@ export class UploadComponent {
   errorMessage = '';
   successMessage = '';
   subjects: Subject[] = [];
+  selectedFile?: File;
 
   constructor(private api: ApiService) {
-    this.subjects = this.api.getSubjects();
+    this.api.getSubjects().subscribe({
+      next: (subjects) => {
+        this.subjects = subjects;
 
-    if (this.subjects.length > 0) {
-      this.subjectId = this.subjects[0].id;
-    }
+        if (this.subjects.length > 0) {
+          this.subjectId = this.subjects[0].id;
+        }
+      },
+      error: () => {
+        this.subjects = [];
+        this.errorMessage = 'Could not load subjects from the backend.';
+      }
+    });
   }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
 
+    this.selectedFile = file;
     this.fileName = file ? file.name : '';
 
     if (this.fileName) {
@@ -43,7 +53,7 @@ export class UploadComponent {
 
   add(): void {
     const hasUrl = this.url.trim().length > 0;
-    const hasFile = this.fileName.trim().length > 0;
+    const hasFile = Boolean(this.selectedFile);
 
     if (!this.title.trim()) {
       this.errorMessage = 'Enter title.';
@@ -52,33 +62,61 @@ export class UploadComponent {
     }
 
     if (!hasUrl && !hasFile) {
-      this.errorMessage = 'Choose one source: URL or file.';
+      this.errorMessage = 'Choose a file to upload.';
       this.successMessage = '';
       return;
     }
 
-    if (hasUrl && hasFile) {
-      this.errorMessage = 'Use only one source: URL or file.';
+    if (hasUrl && !hasFile) {
+      this.errorMessage = 'Current backend accepts file uploads only.';
       this.successMessage = '';
       return;
     }
 
-    this.errorMessage = '';
-    this.successMessage = 'Material uploaded successfully!';
+    if (!this.selectedFile) {
+      this.errorMessage = 'Choose a file to upload.';
+      this.successMessage = '';
+      return;
+    }
 
     this.api.addMaterial({
-      id: Date.now(),
       title: this.title.trim(),
-      rating: 0,
       subjectId: Number(this.subjectId),
-      url: hasUrl ? this.url.trim() : '',
-      fileName: hasFile ? this.fileName : '',
-      downloads: 0,
-      isFavorite: false
+      file: this.selectedFile
+    }).subscribe({
+      next: (material) => {
+        this.errorMessage = '';
+        this.successMessage = 'Material uploaded successfully!';
+        this.storeUploadedMaterialId(material.id);
+        this.title = '';
+        this.url = '';
+        this.fileName = '';
+        this.selectedFile = undefined;
+      },
+      error: () => {
+        this.errorMessage = 'Upload failed. Make sure you are logged in and selected a file.';
+        this.successMessage = '';
+      }
     });
+  }
 
-    this.title = '';
-    this.url = '';
-    this.fileName = '';
+  private storeUploadedMaterialId(materialId: number): void {
+    const existingIds = this.getUploadedMaterialIds();
+    const nextIds = Array.from(new Set([...existingIds, materialId]));
+    localStorage.setItem('uploaded_material_ids', JSON.stringify(nextIds));
+  }
+
+  private getUploadedMaterialIds(): number[] {
+    const storedIds = localStorage.getItem('uploaded_material_ids');
+
+    if (!storedIds) {
+      return [];
+    }
+
+    try {
+      return JSON.parse(storedIds) as number[];
+    } catch {
+      return [];
+    }
   }
 }

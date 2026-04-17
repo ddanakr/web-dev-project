@@ -8,6 +8,10 @@
     <input [(ngModel)]="searchQuery" type="text" placeholder="Search subjects..." autocomplete="off">
   </div>
 
+  @if (errorMessage) {
+    <p style="color: #b42318; margin-bottom: 16px;">{{ errorMessage }}</p>
+  }
+
   <div class="subjects-grid">
     @for (subject of filteredSubjects; track subject.id) {
       <div class="subject-card" [attr.data-subject-id]="subject.id">

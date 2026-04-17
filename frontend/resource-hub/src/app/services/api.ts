@@ -1,88 +1,136 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { Observable, map } from 'rxjs';
 import { Subject } from '../models/subject';
 import { Material } from '../models/material';
+
+interface LoginResponse {
+  token: string;
+}
+
+interface StatusResponse {
+  status: string;
+}
+
+interface MaterialUploadPayload {
+  title: string;
+  subjectId: number;
+  file: File;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
-  private readonly subjects: Subject[] = [
-    {
-      id: 1,
-      name: 'Web Development',
-      description: 'Modern web technologies including HTML, CSS, JavaScript, Angular, React, Node.js, and responsive design.'
-    },
-    {
-      id: 2,
-      name: 'Object-Oriented Programming and Design',
-      description: 'SOLID principles, design patterns, UML, encapsulation, inheritance, polymorphism, and abstraction.'
-    },
-    {
-      id: 3,
-      name: 'IT Infrastructure and Computer Networks',
-      description: 'TCP/IP, DNS, routing, switching, cloud computing, network security, and systems administration.'
-    },
-    {
-      id: 4,
-      name: 'Ethical Digital Design',
-      description: 'Accessibility, inclusive design, privacy by design, sustainable web practices, and ethical interfaces.'
+  private readonly http = inject(HttpClient);
+  private readonly apiBaseUrl = 'http://localhost:8000/api';
+  private readonly mediaBaseUrl = 'http://localhost:8000';
+  private readonly subjectDescriptions = new Map<string, string>([
+    [
+      'Web Development',
+      'Modern web technologies including HTML, CSS, JavaScript, Angular, React, Node.js, and responsive design.'
+    ],
+    [
+      'Object-Oriented Programming and Design',
+      'SOLID principles, design patterns, UML, encapsulation, inheritance, polymorphism, and abstraction.'
+    ],
+    [
+      'IT Infrastructure and Computer Networks',
+      'TCP/IP, DNS, routing, switching, cloud computing, network security, and systems administration.'
+    ],
+    [
+      'Ethical Digital Design',
+      'Accessibility, inclusive design, privacy by design, sustainable web practices, and ethical interfaces.'
+    ]
+  ]);
+
+  getSubjects(): Observable<Subject[]> {
+    return this.http
+      .get<Subject[]>(`${this.apiBaseUrl}/subjects/`)
+      .pipe(map((subjects) => subjects.map((subject) => this.mapSubject(subject))));
+  }
+
+  getSubjectById(subjectId: number): Observable<Subject | undefined> {
+    return this.getSubjects().pipe(
+      map((subjects) => subjects.find((subject) => subject.id === subjectId))
+    );
+  }
+
+  getMaterials(subjectId?: number): Observable<Material[]> {
+    let params = new HttpParams();
+
+    if (subjectId) {
+      params = params.set('subject', String(subjectId));
     }
-  ];
 
-  private readonly materials: Material[] = [
-    { id: 1, title: 'Advanced React Patterns', rating: 4.9, downloads: 1540, subjectId: 1, isFavorite: false, url: '#' },
-    { id: 2, title: 'Node.js Microservices', rating: 4.8, downloads: 1120, subjectId: 1, isFavorite: true, url: '#' },
-    { id: 3, title: 'CSS Grid & Flexbox Mastery', rating: 4.7, downloads: 2100, subjectId: 1, isFavorite: false, url: '#' },
-    { id: 4, title: 'TypeScript for Frontend Apps', rating: 4.8, downloads: 980, subjectId: 1, isFavorite: false, url: '#' },
-    { id: 5, title: 'Gang of Four Design Patterns', rating: 4.9, downloads: 980, subjectId: 2, isFavorite: false, url: '#' },
-    { id: 6, title: 'SOLID Principles Deep Dive', rating: 4.8, downloads: 750, subjectId: 2, isFavorite: true, url: '#' },
-    { id: 7, title: 'UML for System Design', rating: 4.6, downloads: 620, subjectId: 2, isFavorite: false, url: '#' },
-    { id: 8, title: 'Refactoring Legacy OOP Code', rating: 4.7, downloads: 710, subjectId: 2, isFavorite: false, url: '#' },
-    { id: 9, title: 'CCNA Complete Guide', rating: 4.8, downloads: 890, subjectId: 3, isFavorite: false, url: '#' },
-    { id: 10, title: 'AWS Solutions Architect Prep', rating: 4.9, downloads: 1340, subjectId: 3, isFavorite: true, url: '#' },
-    { id: 11, title: 'Network Security Fundamentals', rating: 4.7, downloads: 560, subjectId: 3, isFavorite: false, url: '#' },
-    { id: 12, title: 'Routing and Switching Basics', rating: 4.6, downloads: 610, subjectId: 3, isFavorite: false, url: '#' },
-    { id: 13, title: 'WCAG 2.1 Accessibility Guide', rating: 4.9, downloads: 430, subjectId: 4, isFavorite: false, url: '#' },
-    { id: 14, title: 'Privacy by Design Principles', rating: 4.8, downloads: 380, subjectId: 4, isFavorite: true, url: '#' },
-    { id: 15, title: 'Inclusive UX Writing', rating: 4.7, downloads: 520, subjectId: 4, isFavorite: false, url: '#' },
-    { id: 16, title: 'Ethical AI Interfaces', rating: 4.8, downloads: 460, subjectId: 4, isFavorite: false, url: '#' }
-  ];
-
-  getSubjects(): Subject[] {
-    return [...this.subjects];
+    return this.http
+      .get<Material[]>(`${this.apiBaseUrl}/materials/`, { params })
+      .pipe(map((materials) => materials.map((material) => this.mapMaterial(material))));
   }
 
-  getSubjectById(subjectId: number): Subject | undefined {
-    return this.subjects.find((subject) => subject.id === subjectId);
+  getMaterialsBySubject(subjectId: number): Observable<Material[]> {
+    return this.getMaterials(subjectId);
   }
 
-  getMaterials(): Material[] {
-    return [...this.materials];
+  getFavoriteMaterials(): Observable<Material[]> {
+    return this.getMaterials().pipe(
+      map((materials) => materials.filter((material) => material.isFavorite))
+    );
   }
 
-  getMaterialsBySubject(subjectId: number): Material[] {
-    return this.materials.filter((material) => material.subjectId === subjectId);
-  }
-
-  getFavoriteMaterials(): Material[] {
-    return this.materials.filter((material) => material.isFavorite);
-  }
-
-  toggleFavorite(materialId: number): void {
-    const material = this.materials.find((item) => item.id === materialId);
-
-    if (material) {
-      material.isFavorite = !material.isFavorite;
-    }
-  }
-
-  addMaterial(material: Material): void {
-    this.materials.push({
-      ...material,
-      downloads: material.downloads ?? 0,
-      url: material.url ?? '',
-      fileName: material.fileName ?? '',
-      isFavorite: material.isFavorite ?? false
+  login(username: string, password: string): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${this.apiBaseUrl}/login/`, {
+      username,
+      password
     });
+  }
+
+  logout(): Observable<StatusResponse> {
+    return this.http.post<StatusResponse>(`${this.apiBaseUrl}/logout/`, {});
+  }
+
+  toggleFavorite(materialId: number): Observable<StatusResponse> {
+    return this.http.post<StatusResponse>(`${this.apiBaseUrl}/materials/${materialId}/favorite/`, {});
+  }
+
+  rate(materialId: number, value: number): Observable<StatusResponse> {
+    return this.http.post<StatusResponse>(`${this.apiBaseUrl}/rate/`, {
+      material_id: materialId,
+      value
+    });
+  }
+
+  addMaterial(payload: MaterialUploadPayload): Observable<Material> {
+    const formData = new FormData();
+    formData.append('title', payload.title);
+    formData.append('subjectId', String(payload.subjectId));
+    formData.append('file', payload.file);
+
+    return this.http
+      .post<Material>(`${this.apiBaseUrl}/materials/`, formData)
+      .pipe(map((material) => this.mapMaterial(material)));
+  }
+
+  private mapSubject(subject: Subject): Subject {
+    return {
+      ...subject,
+      description: subject.description ?? this.subjectDescriptions.get(subject.name) ?? ''
+    };
+  }
+
+  private mapMaterial(material: Material): Material {
+    const fileUrl = material.file
+      ? material.file.startsWith('http')
+        ? material.file
+        : `${this.mediaBaseUrl}${material.file}`
+      : '';
+
+    return {
+      ...material,
+      url: material.url ?? fileUrl,
+      downloads: material.downloads ?? 0,
+      rating: Number(material.rating ?? 0),
+      isFavorite: Boolean(material.isFavorite)
+    };
   }
 }
