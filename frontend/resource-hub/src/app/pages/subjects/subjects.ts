@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -29,7 +29,7 @@ export class SubjectsComponent {
   errorMessage = '';
   loadFailed = false;
 
-  constructor(private api: ApiService) {
+  constructor(private api: ApiService, private cdr: ChangeDetectorRef) {
     this.refreshSubjects();
   }
 
@@ -61,9 +61,26 @@ export class SubjectsComponent {
   }
 
   toggleFavorite(materialId: number): void {
+    this.subjects = this.subjects.map((subject) => ({
+      ...subject,
+      previewMaterials: subject.previewMaterials.map((material) =>
+        material.id === materialId
+          ? { ...material, isFavorite: !material.isFavorite }
+          : material
+      )
+    }));
+
     this.api.toggleFavorite(materialId).subscribe({
-      next: () => this.refreshSubjects(),
       error: () => {
+        // откатываем если ошибка
+        this.subjects = this.subjects.map((subject) => ({
+          ...subject,
+          previewMaterials: subject.previewMaterials.map((material) =>
+            material.id === materialId
+              ? { ...material, isFavorite: !material.isFavorite }
+              : material
+          )
+        }));
         this.errorMessage = 'Could not update favorites. Please log in first.';
       }
     });
@@ -72,11 +89,25 @@ export class SubjectsComponent {
   getStars(rating: number): string {
     const fullStars = Math.floor(rating);
     const halfStar = rating % 1 >= 0.5 ? '?' : '';
-    return `${'?'.repeat(fullStars)}${halfStar}`;
+    return `${'★'.repeat(fullStars)}${halfStar}`;
   }
 
   getHiddenMaterialsCount(subject: SubjectPreview): number {
     return Math.max(0, subject.totalMaterials - subject.previewMaterials.length);
+  }
+
+  onDownload(materialId: number): void {
+    console.log('onDownload called', materialId);
+    this.subjects = this.subjects.map((subject) => ({
+      ...subject,
+      previewMaterials: subject.previewMaterials.map((m) =>
+        m.id === materialId ? { ...m, downloads: (m.downloads ?? 0) + 1 } : m
+      )
+    }));
+    this.api.trackDownload(materialId).subscribe({
+      next: () => console.log('tracked'),
+      error: (err) => console.error(err)
+    });
   }
 
   private refreshSubjects(): void {
@@ -99,6 +130,7 @@ export class SubjectsComponent {
             .slice(0, this.previewLimit),
           totalMaterials: materials.filter((material) => material.subjectId === subject.id).length
         }));
+        this.cdr.detectChanges();
       },
       error: () => {
         this.subjects = [];

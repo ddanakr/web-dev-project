@@ -86,7 +86,10 @@ export class ApiService {
 
   getFavoriteMaterials(): Observable<Material[]> {
     return this.getMaterials().pipe(
-      map((materials) => materials.filter((material) => material.isFavorite))
+      map((materials) => {
+        console.log('isFavorite values:', materials.map(m => ({ id: m.id, isFavorite: m.isFavorite })));
+        return materials.filter((material) => material.isFavorite);
+      })
     );
   }
 
@@ -144,5 +147,17 @@ export class ApiService {
       rating: Number(material.rating ?? 0),
       isFavorite: Boolean(material.isFavorite)
     };
+  }
+
+  trackDownload(materialId: number): Observable<StatusResponse> {
+    return this.http.post<StatusResponse>(
+      `${this.apiBaseUrl}/materials/${materialId}/download/`, {}
+    );
+  }
+
+  me(): Observable<{ id: number; username: string; email: string; uploadCount: number }> {
+    return this.http.get<{ id: number; username: string; email: string; uploadCount: number }>(
+      `${this.apiBaseUrl}/me/`
+    );
   }
 }

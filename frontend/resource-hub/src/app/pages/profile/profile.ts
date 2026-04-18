@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectorRef } from '@angular/core';
 import { Material } from '../../models/material';
 import { ApiService } from '../../services/api';
 
@@ -10,23 +10,30 @@ import { ApiService } from '../../services/api';
   styleUrl: './profile.css',
 })
 export class ProfileComponent {
-  readonly username = localStorage.getItem('current_username') ?? 'Guest user';
-  readonly email = 'Email is not available from the current backend yet.';
+  username = '';
+  email = '';
+  uploadCount = 0;
   favorites: Material[] = [];
 
-  constructor(private api: ApiService) {
+  constructor(private api: ApiService, private cdr: ChangeDetectorRef) {
+    this.api.me().subscribe({
+      next: (user) => {
+        this.username = user.username;
+        this.email = user.email;
+        this.uploadCount = user.uploadCount;
+        this.cdr.detectChanges();
+      }
+    });
+
     this.api.getFavoriteMaterials().subscribe({
       next: (favorites) => {
-        this.favorites = favorites;
+        this.favorites = [...favorites];
+        this.cdr.detectChanges();
       },
       error: () => {
         this.favorites = [];
       }
     });
-  }
-
-  get uploadCount(): number {
-    return this.getUploadedMaterialIds().length;
   }
 
   get favoriteCount(): number {
@@ -36,20 +43,6 @@ export class ProfileComponent {
   getStars(rating: number): string {
     const fullStars = Math.floor(rating);
     const halfStar = rating % 1 >= 0.5 ? '?' : '';
-    return `${'?'.repeat(fullStars)}${halfStar}`;
-  }
-
-  private getUploadedMaterialIds(): number[] {
-    const storedIds = localStorage.getItem('uploaded_material_ids');
-
-    if (!storedIds) {
-      return [];
-    }
-
-    try {
-      return JSON.parse(storedIds) as number[];
-    } catch {
-      return [];
-    }
+    return `${'★'.repeat(fullStars)}${halfStar}`;
   }
 }

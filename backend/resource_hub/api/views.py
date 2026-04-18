@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
 
-from django.db.models import Avg, Exists, OuterRef, Value, BooleanField, FloatField
+from django.db.models import Avg, Exists, OuterRef, Value, BooleanField, FloatField, F
 from django.db.models.functions import Coalesce
 
 from .models import Subject, Material, Favorite, Rating
@@ -213,3 +213,10 @@ def me(request):
         "email": user.email,
         "uploadCount": upload_count
     })
+
+
+@api_view(['POST'])
+def download_material(request, pk):
+    material = get_object_or_404(Material, pk=pk)
+    Material.objects.filter(pk=pk).update(downloads=F('downloads') + 1)
+    return Response({"status": "ok"})

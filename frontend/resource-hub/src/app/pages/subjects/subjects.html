@@ -61,7 +61,11 @@
                   >
                     <i class="fas fa-heart"></i>
                   </button>
-                  <a class="btn-icon download" [href]="material.url || '#'" target="_blank" rel="noreferrer">
+                  <!-- <a class="btn-icon download" [href]="material.url || '#'" target="_blank" rel="noreferrer">
+                    <i class="fas fa-download"></i>
+                  </a> -->
+                  <a class="btn-icon download" [href]="material.url || '#'" target="_blank" rel="noreferrer"
+                    (click)="onDownload(material.id)">
                     <i class="fas fa-download"></i>
                   </a>
                 </div>

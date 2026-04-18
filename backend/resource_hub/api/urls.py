@@ -7,7 +7,8 @@ from .views import (
     RatingView,
     MaterialDetailAPIView,
     toggle_favorite,
-    me
+    me,
+    download_material
 )
 
 
@@ -20,5 +21,6 @@ urlpatterns = [
     path('rate/', RatingView.as_view(), name='rate'),
     path('materials/<int:pk>/', MaterialDetailAPIView.as_view()),
     path('materials/<int:pk>/favorite/', toggle_favorite),
-    path('me/', me, name='me')
+    path('me/', me, name='me'),
+    path('materials/<int:pk>/download/', download_material, name='download')
 ]
