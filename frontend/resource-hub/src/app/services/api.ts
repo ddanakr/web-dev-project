@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable, map, timeout } from 'rxjs';
 import { Subject } from '../models/subject';
 import { Material } from '../models/material';
 
@@ -15,7 +15,8 @@ interface StatusResponse {
 interface MaterialUploadPayload {
   title: string;
   subjectId: number;
-  file: File;
+  file?: File;
+  url?: string;
 }
 
 @Injectable({
@@ -86,10 +87,7 @@ export class ApiService {
 
   getFavoriteMaterials(): Observable<Material[]> {
     return this.getMaterials().pipe(
-      map((materials) => {
-        console.log('isFavorite values:', materials.map(m => ({ id: m.id, isFavorite: m.isFavorite })));
-        return materials.filter((material) => material.isFavorite);
-      })
+      map((materials) => materials.filter((material) => material.isFavorite))
     );
   }
 
@@ -119,10 +117,18 @@ export class ApiService {
     const formData = new FormData();
     formData.append('title', payload.title);
     formData.append('subjectId', String(payload.subjectId));
-    formData.append('file', payload.file);
+
+    if (payload.file) {
+      formData.append('file', payload.file);
+    }
+
+    if (payload.url) {
+      formData.append('url', payload.url);
+    }
 
     return this.http
       .post<Material>(`${this.apiBaseUrl}/materials/`, formData)
+      .pipe(timeout(15000))
       .pipe(map((material) => this.mapMaterial(material)));
   }
 
@@ -142,7 +148,7 @@ export class ApiService {
 
     return {
       ...material,
-      url: material.url ?? fileUrl,
+      url: material.url || fileUrl,
       downloads: material.downloads ?? 0,
       rating: Number(material.rating ?? 0),
       isFavorite: Boolean(material.isFavorite)

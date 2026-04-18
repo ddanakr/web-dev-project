@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { distinctUntilChanged, map } from 'rxjs';
 import { ApiService } from '../../services/api';
@@ -20,7 +20,6 @@ export class MaterialsComponent {
     private api: ApiService,
     private route: ActivatedRoute,
     private cdr: ChangeDetectorRef
-
   ) {
     this.route.paramMap
       .pipe(
@@ -39,59 +38,35 @@ export class MaterialsComponent {
       });
   }
 
-  // toggleFavorite(materialId: number): void {
-  //   this.api.toggleFavorite(materialId).subscribe({
-  //     next: () => {
-  //       const subjectId = Number(this.route.snapshot.paramMap.get('id'));
-
-  //       if (!Number.isNaN(subjectId)) {
-  //         this.loadPage(subjectId);
-  //       }
-  //     },
-  //     error: () => {
-  //       this.errorMessage = 'Could not update favorites. Please log in first.';
-  //     }
-  //   });
-  // }
-
   toggleFavorite(materialId: number): void {
-    this.materials = this.materials.map((m) =>
-      m.id === materialId ? { ...m, isFavorite: !m.isFavorite } : m
+    this.materials = this.materials.map((material) =>
+      material.id === materialId ? { ...material, isFavorite: !material.isFavorite } : material
     );
 
     this.api.toggleFavorite(materialId).subscribe({
       error: () => {
-        // откат
-        this.materials = this.materials.map((m) =>
-          m.id === materialId ? { ...m, isFavorite: !m.isFavorite } : m
+        this.materials = this.materials.map((material) =>
+          material.id === materialId ? { ...material, isFavorite: !material.isFavorite } : material
         );
         this.errorMessage = 'Could not update favorites. Please log in first.';
       }
     });
   }
 
-  // onDownload(materialId: number): void {
-  //   console.log('onDownload called', materialId);
-  //   this.api.trackDownload(materialId).subscribe({
-  //     next: () => console.log('download tracked'),
-  //     error: (err) => console.error('track error', err)
-  //   });
-  // }
-
   onDownload(materialId: number): void {
-    const material = this.materials.find(m => m.id === materialId);
-    console.log('url:', material?.url, 'file:', material?.file);
-
     this.api.trackDownload(materialId).subscribe({
-      next: () => console.log('download tracked'),
-      error: (err) => console.error('track error', err)
+      next: () => {
+        this.materials = this.materials.map((material) =>
+          material.id === materialId
+            ? { ...material, downloads: (material.downloads ?? 0) + 1 }
+            : material
+        );
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.errorMessage = 'Could not update download count.';
+      }
     });
-  }
-
-  getStars(rating: number): string {
-    const fullStars = Math.floor(rating);
-    const halfStar = rating % 1 >= 0.5 ? '?' : '';
-    return `${'★'.repeat(fullStars)}${halfStar}`;
   }
 
   private loadPage(subjectId: number): void {

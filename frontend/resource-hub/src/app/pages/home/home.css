@@ -10,7 +10,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
   gap: 28px;
-  align-items: stretch;
+  align-items: start;
 }
 
 .hero-copy,
@@ -70,35 +70,6 @@
 .hero-secondary:hover {
   border-color: var(--primary);
   color: var(--primary);
-}
-
-.hero-stats {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-  margin-top: 28px;
-}
-
-.hero-stat {
-  min-width: 130px;
-  background: rgba(255, 255, 255, 0.78);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  padding: 14px 18px;
-}
-
-.hero-stat strong {
-  display: block;
-  color: var(--primary);
-  font-size: 1.8rem;
-  line-height: 1;
-}
-
-.hero-stat span {
-  display: block;
-  margin-top: 6px;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
 }
 
 .hero-panel {
@@ -221,11 +192,6 @@
 
 :host-context(body.dark-mode) .hero-secondary {
   background: rgba(255, 255, 255, 0.02);
-}
-
-:host-context(body.dark-mode) .hero-stat {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.08);
 }
 
 :host-context(body.dark-mode) .panel-card-primary {

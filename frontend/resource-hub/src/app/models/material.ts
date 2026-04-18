@@ -7,7 +7,7 @@ export interface Material {
   file?: string;
   created_at?: string;
   owner?: number;
-  url?: string;
+  url?: string | null;
   fileName?: string;
   isFavorite?: boolean;
 }

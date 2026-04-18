@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { ChangeDetectorRef, Component, ElementRef, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { finalize } from 'rxjs';
 import { Subject } from '../../models/subject';
 import { ApiService } from '../../services/api';
 
@@ -11,6 +12,8 @@ import { ApiService } from '../../services/api';
   styleUrl: './upload.css',
 })
 export class UploadComponent {
+  @ViewChild('fileInput') fileInput?: ElementRef<HTMLInputElement>;
+
   title = '';
   url = '';
   fileName = '';
@@ -20,8 +23,12 @@ export class UploadComponent {
   subjects: Subject[] = [];
   selectedFile?: File;
   subjectsLoadFailed = false;
+  isSubmitting = false;
 
-  constructor(private api: ApiService) {
+  constructor(
+    private api: ApiService,
+    private cdr: ChangeDetectorRef
+  ) {
     this.api.getSubjects().subscribe({
       next: (subjects) => {
         this.subjects = subjects;
@@ -41,6 +48,25 @@ export class UploadComponent {
 
   get hasSubjects(): boolean {
     return this.subjects.length > 0;
+  }
+
+  triggerFilePicker(): void {
+    this.fileInput?.nativeElement.click();
+  }
+
+  onUrlChange(value: string): void {
+    this.url = value;
+
+    if (this.url.trim().length > 0) {
+      this.selectedFile = undefined;
+      this.fileName = '';
+      this.resetNativeFileInput();
+    }
+
+    if (!this.subjectsLoadFailed) {
+      this.errorMessage = '';
+    }
+    this.successMessage = '';
   }
 
   onFileSelected(event: Event): void {
@@ -64,6 +90,10 @@ export class UploadComponent {
     const hasUrl = this.url.trim().length > 0;
     const hasFile = Boolean(this.selectedFile);
 
+    if (this.isSubmitting) {
+      return;
+    }
+
     if (!this.title.trim()) {
       this.errorMessage = 'Enter title.';
       this.successMessage = '';
@@ -77,40 +107,47 @@ export class UploadComponent {
     }
 
     if (!hasUrl && !hasFile) {
-      this.errorMessage = 'Choose a file to upload.';
+      this.errorMessage = 'Choose one source: file or URL.';
       this.successMessage = '';
       return;
     }
 
-    if (hasUrl && !hasFile) {
-      this.errorMessage = 'Current backend accepts file uploads only.';
+    if (hasUrl && hasFile) {
+      this.errorMessage = 'Use only one source: either file or URL.';
       this.successMessage = '';
       return;
     }
 
-    if (!this.selectedFile) {
-      this.errorMessage = 'Choose a file to upload.';
-      this.successMessage = '';
-      return;
-    }
+    this.isSubmitting = true;
+    this.errorMessage = '';
+    this.successMessage = '';
 
     this.api.addMaterial({
       title: this.title.trim(),
       subjectId: Number(this.subjectId),
-      file: this.selectedFile
-    }).subscribe({
+      file: this.selectedFile,
+      url: hasUrl ? this.url.trim() : undefined
+    })
+      .pipe(finalize(() => {
+        this.isSubmitting = false;
+        this.cdr.detectChanges();
+      }))
+      .subscribe({
       next: (material) => {
-        this.errorMessage = '';
         this.successMessage = 'Material uploaded successfully!';
         this.storeUploadedMaterialId(material.id);
-        this.title = '';
-        this.url = '';
-        this.fileName = '';
-        this.selectedFile = undefined;
+        this.resetForm();
+        this.cdr.detectChanges();
       },
-      error: () => {
-        this.errorMessage = 'Upload failed. Make sure you are logged in and selected a file.';
+      error: (error) => {
+        this.errorMessage = error.error?.non_field_errors?.[0]
+          ?? error.error?.file?.[0]
+          ?? error.error?.url?.[0]
+          ?? error.error?.title?.[0]
+          ?? error.message
+          ?? 'Upload failed. Make sure you are logged in and selected a valid file or URL.';
         this.successMessage = '';
+        this.cdr.detectChanges();
       }
     });
   }
@@ -132,6 +169,20 @@ export class UploadComponent {
       return JSON.parse(storedIds) as number[];
     } catch {
       return [];
+    }
+  }
+
+  private resetForm(): void {
+    this.title = '';
+    this.url = '';
+    this.fileName = '';
+    this.selectedFile = undefined;
+    this.resetNativeFileInput();
+  }
+
+  private resetNativeFileInput(): void {
+    if (this.fileInput) {
+      this.fileInput.nativeElement.value = '';
     }
   }
 }

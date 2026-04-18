@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { Material } from '../../models/material';
 import { ApiService } from '../../services/api';
 
@@ -15,7 +15,10 @@ export class ProfileComponent {
   uploadCount = 0;
   favorites: Material[] = [];
 
-  constructor(private api: ApiService, private cdr: ChangeDetectorRef) {
+  constructor(
+    private api: ApiService,
+    private cdr: ChangeDetectorRef
+  ) {
     this.api.me().subscribe({
       next: (user) => {
         this.username = user.username;
@@ -38,11 +41,5 @@ export class ProfileComponent {
 
   get favoriteCount(): number {
     return this.favorites.length;
-  }
-
-  getStars(rating: number): string {
-    const fullStars = Math.floor(rating);
-    const halfStar = rating % 1 >= 0.5 ? '?' : '';
-    return `${'★'.repeat(fullStars)}${halfStar}`;
   }
 }

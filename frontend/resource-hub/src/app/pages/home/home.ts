@@ -23,13 +23,7 @@ export class HomeComponent {
     {
       icon: 'fa-heart',
       title: 'Save Favorites',
-      text: 'Mark the best materials and keep them ready in your profile page.'
+      text: 'Mark useful materials and keep them ready in your profile page.'
     }
-  ];
-
-  readonly stats = [
-    { value: '4', label: 'Core Subjects' },
-    { value: '16+', label: 'Starter Materials' },
-    { value: '1', label: 'Shared Hub' }
   ];
 }

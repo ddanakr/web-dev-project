@@ -29,7 +29,8 @@
           type="url"
           class="form-control"
           placeholder="https://example.com/material.pdf"
-          [(ngModel)]="url"
+          [ngModel]="url"
+          (ngModelChange)="onUrlChange($event)"
           name="url"
           [disabled]="!!fileName"
         >
@@ -38,11 +39,21 @@
       <div class="form-group">
         <label><i class="fas fa-file"></i> Or choose a file</label>
         <input
+          #fileInput
           type="file"
-          class="form-control"
+          class="file-input-hidden"
           [disabled]="url.trim().length > 0"
           (change)="onFileSelected($event)"
         >
+        <button
+          type="button"
+          class="file-picker"
+          [disabled]="url.trim().length > 0 || isSubmitting"
+          (click)="triggerFilePicker()"
+        >
+          <span class="file-picker-button">Choose File</span>
+          <span class="file-picker-name">{{ fileName || 'No file selected' }}</span>
+        </button>
         @if (fileName) {
           <p style="margin-top: 8px; color: var(--text-secondary);">Selected file: {{ fileName }}</p>
         }
@@ -62,8 +73,8 @@
         }
       </div>
 
-      <button type="submit" class="btn btn-primary" style="width: 100%;" [disabled]="!hasSubjects">
-        <i class="fas fa-cloud-upload-alt"></i> Upload
+      <button type="submit" class="btn btn-primary" style="width: 100%;" [disabled]="!hasSubjects || isSubmitting">
+        <i class="fas fa-cloud-upload-alt"></i> {{ isSubmitting ? 'Uploading...' : 'Upload' }}
       </button>
     </form>
   </div>

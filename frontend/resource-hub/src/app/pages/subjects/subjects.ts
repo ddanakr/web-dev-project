@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef} from '@angular/core';
+import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
@@ -29,7 +29,10 @@ export class SubjectsComponent {
   errorMessage = '';
   loadFailed = false;
 
-  constructor(private api: ApiService, private cdr: ChangeDetectorRef) {
+  constructor(
+    private api: ApiService,
+    private cdr: ChangeDetectorRef
+  ) {
     this.refreshSubjects();
   }
 
@@ -72,7 +75,6 @@ export class SubjectsComponent {
 
     this.api.toggleFavorite(materialId).subscribe({
       error: () => {
-        // откатываем если ошибка
         this.subjects = this.subjects.map((subject) => ({
           ...subject,
           previewMaterials: subject.previewMaterials.map((material) =>
@@ -86,27 +88,24 @@ export class SubjectsComponent {
     });
   }
 
-  getStars(rating: number): string {
-    const fullStars = Math.floor(rating);
-    const halfStar = rating % 1 >= 0.5 ? '?' : '';
-    return `${'★'.repeat(fullStars)}${halfStar}`;
-  }
-
   getHiddenMaterialsCount(subject: SubjectPreview): number {
     return Math.max(0, subject.totalMaterials - subject.previewMaterials.length);
   }
 
   onDownload(materialId: number): void {
-    console.log('onDownload called', materialId);
     this.subjects = this.subjects.map((subject) => ({
       ...subject,
-      previewMaterials: subject.previewMaterials.map((m) =>
-        m.id === materialId ? { ...m, downloads: (m.downloads ?? 0) + 1 } : m
+      previewMaterials: subject.previewMaterials.map((material) =>
+        material.id === materialId
+          ? { ...material, downloads: (material.downloads ?? 0) + 1 }
+          : material
       )
     }));
+
     this.api.trackDownload(materialId).subscribe({
-      next: () => console.log('tracked'),
-      error: (err) => console.error(err)
+      error: () => {
+        this.errorMessage = 'Could not update download count.';
+      }
     });
   }
 
