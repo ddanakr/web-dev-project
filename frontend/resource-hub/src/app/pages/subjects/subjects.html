@@ -12,6 +12,18 @@
     <p style="color: #b42318; margin-bottom: 16px;">{{ errorMessage }}</p>
   }
 
+  @if (showEmptySearchState) {
+    <p style="color: var(--text-secondary); margin-bottom: 16px;">
+      No subjects matched your search.
+    </p>
+  }
+
+  @if (showEmptySubjectsState) {
+    <p style="color: var(--text-secondary); margin-bottom: 16px;">
+      No subjects found yet.
+    </p>
+  }
+
   <div class="subjects-grid">
     @for (subject of filteredSubjects; track subject.id) {
       <div class="subject-card" [attr.data-subject-id]="subject.id">
@@ -28,33 +40,46 @@
           {{ subject.description }}
         </div>
 
-        <div class="materials-list">
-          @for (material of subject.previewMaterials; track material.id) {
-            <div class="material-card" [attr.data-material-id]="material.id">
-              <div class="material-info">
-                <div class="material-title">{{ material.title }}</div>
-                <div class="material-rating">
-                  <span>{{ getStars(material.rating) }}</span>
-                  <span>{{ material.rating }} ({{ material.downloads }} downloads)</span>
+        @if (subject.previewMaterials.length > 0) {
+          <div class="materials-list">
+            @for (material of subject.previewMaterials; track material.id) {
+              <div class="material-card" [attr.data-material-id]="material.id">
+                <div class="material-info">
+                  <div class="material-title">{{ material.title }}</div>
+                  <div class="material-rating">
+                    <span>{{ getStars(material.rating) }}</span>
+                    <span>{{ material.rating }} ({{ material.downloads }} downloads)</span>
+                  </div>
+                </div>
+
+                <div class="material-actions">
+                  <button
+                    class="btn-icon favorite"
+                    [class.active]="material.isFavorite"
+                    type="button"
+                    (click)="toggleFavorite(material.id)"
+                  >
+                    <i class="fas fa-heart"></i>
+                  </button>
+                  <a class="btn-icon download" [href]="material.url || '#'" target="_blank" rel="noreferrer">
+                    <i class="fas fa-download"></i>
+                  </a>
                 </div>
               </div>
+            }
+          </div>
 
-              <div class="material-actions">
-                <button
-                  class="btn-icon favorite"
-                  [class.active]="material.isFavorite"
-                  type="button"
-                  (click)="toggleFavorite(material.id)"
-                >
-                  <i class="fas fa-heart"></i>
-                </button>
-                <a class="btn-icon download" [href]="material.url || '#'" target="_blank" rel="noreferrer">
-                  <i class="fas fa-download"></i>
-                </a>
-              </div>
-            </div>
-          }
-        </div>
+          <a class="btn btn-primary" [routerLink]="['/materials', subject.id]">
+            View all materials
+            @if (getHiddenMaterialsCount(subject) > 0) {
+              <span>({{ getHiddenMaterialsCount(subject) }} more)</span>
+            }
+          </a>
+        } @else {
+          <p style="color: var(--text-secondary); margin-top: 12px;">
+            No materials in this subject yet.
+          </p>
+        }
       </div>
     }
   </div>

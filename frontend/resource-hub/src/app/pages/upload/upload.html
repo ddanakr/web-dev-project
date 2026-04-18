@@ -52,12 +52,17 @@
         <label><i class="fas fa-book"></i> Subject</label>
         <select class="form-control" [(ngModel)]="subjectId" name="subjectId">
           @for (s of subjects; track s.id) {
-            <option [value]="s.id">{{ s.name }}</option>
+            <option [ngValue]="s.id">{{ s.name }}</option>
           }
         </select>
+        @if (!hasSubjects) {
+          <p style="margin-top: 8px; color: var(--text-secondary);">
+            No subjects available. The backend should return the existing subject list here.
+          </p>
+        }
       </div>
 
-      <button type="submit" class="btn btn-primary" style="width: 100%;">
+      <button type="submit" class="btn btn-primary" style="width: 100%;" [disabled]="!hasSubjects">
         <i class="fas fa-cloud-upload-alt"></i> Upload
       </button>
     </form>

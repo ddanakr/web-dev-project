@@ -19,11 +19,13 @@ export class UploadComponent {
   successMessage = '';
   subjects: Subject[] = [];
   selectedFile?: File;
+  subjectsLoadFailed = false;
 
   constructor(private api: ApiService) {
     this.api.getSubjects().subscribe({
       next: (subjects) => {
         this.subjects = subjects;
+        this.subjectsLoadFailed = false;
 
         if (this.subjects.length > 0) {
           this.subjectId = this.subjects[0].id;
@@ -31,9 +33,14 @@ export class UploadComponent {
       },
       error: () => {
         this.subjects = [];
+        this.subjectsLoadFailed = true;
         this.errorMessage = 'Could not load subjects from the backend.';
       }
     });
+  }
+
+  get hasSubjects(): boolean {
+    return this.subjects.length > 0;
   }
 
   onFileSelected(event: Event): void {
@@ -47,7 +54,9 @@ export class UploadComponent {
       this.url = '';
     }
 
-    this.errorMessage = '';
+    if (!this.subjectsLoadFailed) {
+      this.errorMessage = '';
+    }
     this.successMessage = '';
   }
 
@@ -57,6 +66,12 @@ export class UploadComponent {
 
     if (!this.title.trim()) {
       this.errorMessage = 'Enter title.';
+      this.successMessage = '';
+      return;
+    }
+
+    if (!this.hasSubjects) {
+      this.errorMessage = 'No subjects are available for upload yet.';
       this.successMessage = '';
       return;
     }

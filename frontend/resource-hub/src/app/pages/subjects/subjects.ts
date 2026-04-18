@@ -12,6 +12,7 @@ interface SubjectPreview {
   description?: string;
   expanded: boolean;
   previewMaterials: Material[];
+  totalMaterials: number;
 }
 
 @Component({
@@ -22,9 +23,11 @@ interface SubjectPreview {
   styleUrl: './subjects.css',
 })
 export class SubjectsComponent {
+  private readonly previewLimit = 3;
   subjects: SubjectPreview[] = [];
   searchQuery = '';
   errorMessage = '';
+  loadFailed = false;
 
   constructor(private api: ApiService) {
     this.refreshSubjects();
@@ -41,6 +44,14 @@ export class SubjectsComponent {
       subject.name.toLowerCase().includes(query) ||
       (subject.description ?? '').toLowerCase().includes(query)
     );
+  }
+
+  get showEmptySearchState(): boolean {
+    return !this.loadFailed && this.subjects.length > 0 && this.filteredSubjects.length === 0;
+  }
+
+  get showEmptySubjectsState(): boolean {
+    return !this.loadFailed && this.subjects.length === 0;
   }
 
   toggleDescription(subjectId: number): void {
@@ -64,9 +75,14 @@ export class SubjectsComponent {
     return `${'?'.repeat(fullStars)}${halfStar}`;
   }
 
+  getHiddenMaterialsCount(subject: SubjectPreview): number {
+    return Math.max(0, subject.totalMaterials - subject.previewMaterials.length);
+  }
+
   private refreshSubjects(): void {
     const expansionState = new Map(this.subjects.map((subject) => [subject.id, subject.expanded]));
     this.errorMessage = '';
+    this.loadFailed = false;
 
     forkJoin({
       subjects: this.api.getSubjects(),
@@ -78,11 +94,15 @@ export class SubjectsComponent {
           name: subject.name,
           description: subject.description,
           expanded: expansionState.get(subject.id) ?? false,
-          previewMaterials: materials.filter((material) => material.subjectId === subject.id).slice(0, 3)
+          previewMaterials: materials
+            .filter((material) => material.subjectId === subject.id)
+            .slice(0, this.previewLimit),
+          totalMaterials: materials.filter((material) => material.subjectId === subject.id).length
         }));
       },
       error: () => {
         this.subjects = [];
+        this.loadFailed = true;
         this.errorMessage = 'Could not load subjects from the backend.';
       }
     });

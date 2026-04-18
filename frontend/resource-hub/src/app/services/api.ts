@@ -41,6 +41,18 @@ export class ApiService {
     [
       'Ethical Digital Design',
       'Accessibility, inclusive design, privacy by design, sustainable web practices, and ethical interfaces.'
+    ],
+    [
+      'Kazakh language',
+      'Grammar, reading, writing, and communication practice for academic and everyday Kazakh usage.'
+    ],
+    [
+      'Russian language',
+      'Core grammar, reading comprehension, vocabulary building, and written communication in Russian.'
+    ],
+    [
+      'Intro to ML',
+      'Machine learning basics including supervised learning, model evaluation, data preprocessing, and practical workflows.'
     ]
   ]);
 
