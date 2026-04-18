@@ -6,7 +6,8 @@ from .views import (
     logout_view,
     RatingView,
     MaterialDetailAPIView,
-    toggle_favorite
+    toggle_favorite,
+    me
 )
 
 
@@ -16,7 +17,8 @@ urlpatterns = [
     path('logout/', logout_view, name='logout'),
     path('materials/', MaterialListCreateAPIView.as_view(), name='materials-list'),
     path('subjects/', subject_list, name='subjects-list'),
-    path('rate/', RatingView.as_view()),
+    path('rate/', RatingView.as_view(), name='rate'),
     path('materials/<int:pk>/', MaterialDetailAPIView.as_view()),
     path('materials/<int:pk>/favorite/', toggle_favorite),
+    path('me/', me, name='me')
 ]

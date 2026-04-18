@@ -1,10 +1,11 @@
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework import status, permissions
+from rest_framework import status, permissions, generics
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 from django.shortcuts import get_object_or_404
 
-from django.db.models import Avg, Exists, OuterRef, Value, BooleanField
+from django.db.models import Avg, Exists, OuterRef, Value, BooleanField, FloatField
 from django.db.models.functions import Coalesce
 
 from .models import Subject, Material, Favorite, Rating
@@ -28,7 +29,7 @@ class MaterialListCreateAPIView(APIView):
         queryset = Material.objects.all().select_related('subject', 'owner')
 
         queryset = queryset.annotate(
-            rating = Coalesce(Avg('ratings__value'), 0)
+            rating = Coalesce(Avg('ratings__value', output_field=FloatField()), 0.0)
         )
 
         user = request.user
@@ -83,18 +84,18 @@ class MaterialListCreateAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+    
 
-class MaterialDetailAPIView(APIView):
+class MaterialDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = MaterialSerializer
     permission_classes = [permissions.IsAuthenticatedOrReadOnly]
 
-    def get_object(self, request, pk):
-        queryset = Material.objects.select_related('subject', 'owner')
-
-        queryset = queryset.annotate(
-            rating = Coalesce(Avg('ratings__value'), 0)
+    def get_queryset(self):
+        queryset = Material.objects.select_related('subject', 'owner').annotate(
+            rating = Coalesce(Avg('ratings__value', output_field=FloatField()), 0.0)
         )
 
-        user = request.user
+        user = self.request.user
 
         if user.is_authenticated:
             queryset = queryset.annotate(
@@ -110,63 +111,19 @@ class MaterialDetailAPIView(APIView):
                 is_favorite = Value(False, output_field=BooleanField())
             )
 
-        return get_object_or_404(queryset, pk=pk)
+        return queryset
     
 
-    def get(self, request, pk):
-        material = self.get_object(request, pk)
-        serializer = MaterialSerializer(material, context={'request': request})
-        return Response(serializer.data)
-    
-
-    def put(self, request, pk):
-        material = self.get_object(request, pk)
-
-        if material.owner != request.user:
-            return Response(status=403)
+    def perform_update(self, serializer):
+        if serializer.instance.owner != self.request.user:
+            raise PermissionDenied()
+        serializer.save()
         
-        serializer = MaterialSerializer(
-            material, data=request.data,
-            partial=False,
-            context={'request': request}
-        )
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        
-        return Response(serializer.errors, status=400)
-    
-
-    def patch(self, request, pk):
-        material = self.get_object(request, pk)
-
-        if material.owner != request.user:
-            return Response(status=403)
-        
-        serializer = MaterialSerializer(
-            material, data=request.data,
-            partial=True,
-            context={'request': request}
-        )
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        
-        return Response(serializer.errors, status=400)
-    
-
-    def delete(self, request, pk):
-        material = self.get_object(request, pk)
-
-        if material.owner != request.user:
-            return Response(status=403)
-        
-        material.delete()
-        return Response(status=204)
-    
-        
+    def perform_destroy(self, instance):
+        if instance.owner != self.request.user:
+            raise PermissionDenied()
+        instance.delete()
+     
 
 
 
@@ -178,10 +135,17 @@ class LoginView(APIView):
         user = authenticate(**serializer.validated_data)
 
         if not user or not user.is_active:
-            return Response({'error': 'Invalid credentials'}, status=400)
+            return Response({'error': 'Invalid credentials'}, status=401)
         
         token, _ = Token.objects.get_or_create(user=user)
-        return Response({'token': token.key})
+        return Response({
+            'token': token.key,
+            'user': {
+                'id': user.id,
+                'username': user.username,
+                'email': user.email
+            }
+        })
 
 
 class RatingView(APIView):
@@ -233,3 +197,19 @@ def toggle_favorite(request, pk):
         fav.delete()
 
     return Response({"status": "ok"})
+
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def me(request):
+    user = request.user
+
+    upload_count = Material.objects.filter(owner=user).count()
+
+    return Response({
+        "id": user.id,
+        "username": user.username,
+        "email": user.email,
+        "uploadCount": upload_count
+    })
