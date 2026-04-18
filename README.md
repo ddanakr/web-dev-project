@@ -17,8 +17,8 @@ A full-stack collaborative platform for academic material sharing and discovery.
 | :--- | :--- |
 | **Frontend** | Angular + CSS |
 | **Backend** | Django + Django REST Framework |
-| **Database** | PostgreSQL |
-| **Auth** | JWT (SimpleJWT) |
+| **Database** | SQLite |
+| **Auth** | Token Authentication |
 | **API Testing** | Postman |
 
 ---
