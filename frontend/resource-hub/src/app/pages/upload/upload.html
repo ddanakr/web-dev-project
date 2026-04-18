@@ -1,0 +1,70 @@
+<main>
+  <div class="form-container">
+    <h1 class="form-title"><i class="fas fa-cloud-upload-alt"></i> Upload Material</h1>
+
+    <div class="alert alert-error" [class.show]="!!errorMessage">
+      {{ errorMessage }}
+    </div>
+
+    <div class="alert alert-success" [class.show]="!!successMessage">
+      {{ successMessage }}
+    </div>
+
+    <form (ngSubmit)="add()">
+      <div class="form-group">
+        <label><i class="fas fa-heading"></i> Material Title</label>
+        <input
+          type="text"
+          class="form-control"
+          placeholder="e.g., Complete Python Course"
+          autocomplete="off"
+          [(ngModel)]="title"
+          name="title"
+        >
+      </div>
+
+      <div class="form-group">
+        <label><i class="fas fa-link"></i> File URL</label>
+        <input
+          type="url"
+          class="form-control"
+          placeholder="https://example.com/material.pdf"
+          [(ngModel)]="url"
+          name="url"
+          [disabled]="!!fileName"
+        >
+      </div>
+
+      <div class="form-group">
+        <label><i class="fas fa-file"></i> Or choose a file</label>
+        <input
+          type="file"
+          class="form-control"
+          [disabled]="url.trim().length > 0"
+          (change)="onFileSelected($event)"
+        >
+        @if (fileName) {
+          <p style="margin-top: 8px; color: var(--text-secondary);">Selected file: {{ fileName }}</p>
+        }
+      </div>
+
+      <div class="form-group">
+        <label><i class="fas fa-book"></i> Subject</label>
+        <select class="form-control" [(ngModel)]="subjectId" name="subjectId">
+          @for (s of subjects; track s.id) {
+            <option [ngValue]="s.id">{{ s.name }}</option>
+          }
+        </select>
+        @if (!hasSubjects) {
+          <p style="margin-top: 8px; color: var(--text-secondary);">
+            No subjects available. The backend should return the existing subject list here.
+          </p>
+        }
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%;" [disabled]="!hasSubjects">
+        <i class="fas fa-cloud-upload-alt"></i> Upload
+      </button>
+    </form>
+  </div>
+</main>

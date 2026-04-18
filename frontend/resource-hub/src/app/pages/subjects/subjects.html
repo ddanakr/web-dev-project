@@ -1,0 +1,90 @@
+<main class="container">
+  <div class="page-header">
+    <h1><i class="fas fa-book"></i> Educational Resource Catalog</h1>
+    <p>Explore Web Development, OOP, IT Networks, and Ethical Design</p>
+  </div>
+
+  <div class="search-bar">
+    <input [(ngModel)]="searchQuery" type="text" placeholder="Search subjects..." autocomplete="off">
+  </div>
+
+  @if (errorMessage) {
+    <p style="color: #b42318; margin-bottom: 16px;">{{ errorMessage }}</p>
+  }
+
+  @if (showEmptySearchState) {
+    <p style="color: var(--text-secondary); margin-bottom: 16px;">
+      No subjects matched your search.
+    </p>
+  }
+
+  @if (showEmptySubjectsState) {
+    <p style="color: var(--text-secondary); margin-bottom: 16px;">
+      No subjects found yet.
+    </p>
+  }
+
+  <div class="subjects-grid">
+    @for (subject of filteredSubjects; track subject.id) {
+      <div class="subject-card" [attr.data-subject-id]="subject.id">
+        <div class="subject-header">
+          <a class="subject-title-link" [routerLink]="['/materials', subject.id]">
+            <h3>{{ subject.name }}</h3>
+          </a>
+          <button class="btn-icon" type="button" (click)="toggleDescription(subject.id)">
+            <i class="fas" [class.fa-chevron-up]="subject.expanded" [class.fa-chevron-down]="!subject.expanded"></i>
+          </button>
+        </div>
+
+        <div class="subject-description" [class.hidden]="!subject.expanded">
+          {{ subject.description }}
+        </div>
+
+        @if (subject.previewMaterials.length > 0) {
+          <div class="materials-list">
+            @for (material of subject.previewMaterials; track material.id) {
+              <div class="material-card" [attr.data-material-id]="material.id">
+                <div class="material-info">
+                  <div class="material-title">{{ material.title }}</div>
+                  <div class="material-rating">
+                    <span>{{ getStars(material.rating) }}</span>
+                    <span>{{ material.rating }} ({{ material.downloads }} downloads)</span>
+                  </div>
+                </div>
+
+                <div class="material-actions">
+                  <button
+                    class="btn-icon favorite"
+                    [class.active]="material.isFavorite"
+                    type="button"
+                    (click)="toggleFavorite(material.id)"
+                  >
+                    <i class="fas fa-heart"></i>
+                  </button>
+                  <!-- <a class="btn-icon download" [href]="material.url || '#'" target="_blank" rel="noreferrer">
+                    <i class="fas fa-download"></i>
+                  </a> -->
+                  <a class="btn-icon download" [href]="material.url || '#'" target="_blank" rel="noreferrer"
+                    (click)="onDownload(material.id)">
+                    <i class="fas fa-download"></i>
+                  </a>
+                </div>
+              </div>
+            }
+          </div>
+
+          <a class="btn btn-primary" [routerLink]="['/materials', subject.id]">
+            View all materials
+            @if (getHiddenMaterialsCount(subject) > 0) {
+              <span>({{ getHiddenMaterialsCount(subject) }} more)</span>
+            }
+          </a>
+        } @else {
+          <p style="color: var(--text-secondary); margin-top: 12px;">
+            No materials in this subject yet.
+          </p>
+        }
+      </div>
+    }
+  </div>
+</main>

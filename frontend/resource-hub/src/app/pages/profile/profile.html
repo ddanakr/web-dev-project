@@ -1,0 +1,49 @@
+<main class="container">
+  <div class="profile-header">
+    <div class="avatar">
+      <i class="fas fa-user-circle"></i>
+    </div>
+
+    <div class="profile-info">
+      <h2>{{ username }}</h2>
+      <p>{{ email }}</p>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-number">{{ uploadCount }}</div>
+          <div class="stat-label">Uploads</div>
+        </div>
+        <div class="stat">
+          <div class="stat-number">{{ favoriteCount }}</div>
+          <div class="stat-label">Favorites</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">
+    <i class="fas fa-heart"></i> Favorite Materials
+  </div>
+
+  <div class="favorites-list">
+    @for (item of favorites; track item.id) {
+      <div class="material-card">
+        <div class="material-info">
+          <div class="material-title">{{ item.title }}</div>
+          <div class="material-rating">
+            <span>{{ getStars(item.rating) }}</span>
+            <span>{{ item.rating }}</span>
+          </div>
+        </div>
+
+        <a class="btn-icon download" [href]="item.url || '#'" target="_blank" rel="noreferrer">
+          <i class="fas fa-download"></i>
+        </a>
+      </div>
+    }
+
+    @if (favorites.length === 0) {
+      <p style="color: var(--text-secondary);">No favorite materials yet</p>
+    }
+  </div>
+</main>
